@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ֆունկցիաների լաբորատորիա</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Armenian:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b1330;--pn:#131f45;--ln:#2a3b73;--cy:#4de1ff;--am:#ffb84d;--ok:#3ddc97;--bad:#ff6b8b;--tx:#e8eeff;--mu:#9fb0e0}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{font-family:"Noto Sans Armenian","Segoe UI",Arial,sans-serif;color:var(--tx);background:var(--bg);
+background-image:linear-gradient(rgba(77,225,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(77,225,255,.06) 1px,transparent 1px);background-size:32px 32px;
+min-height:100vh;padding:env(safe-area-inset-top) 12px env(safe-area-inset-bottom);line-height:1.5}
+.wrap{max-width:720px;margin:0 auto;padding:14px 0 30px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.brand{font-weight:800;font-size:1.05rem;color:var(--cy)}
+.score{background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:6px 14px;font-weight:800;color:var(--am)}
+.chips{display:flex;gap:8px;margin:8px 0}
+.chip{flex:1;text-align:center;padding:6px 0;border-radius:10px;border:1px solid var(--ln);color:var(--mu);font-weight:600;font-size:.9rem}
+.chip.on{border-color:var(--cy);color:var(--cy);background:rgba(77,225,255,.1)}
+.chip.done{border-color:var(--ok);color:var(--ok)}
+.prog{height:8px;background:var(--pn);border-radius:8px;overflow:hidden;border:1px solid var(--ln)}
+#bar{height:100%;width:0;background:linear-gradient(90deg,var(--cy),var(--am));transition:width .4s}
+.cnt{font-size:.85rem;color:var(--mu);margin:4px 0 10px;text-align:right}
+.card{background:var(--pn);border:1px solid var(--ln);border-radius:18px;padding:18px}
+h1{font-size:clamp(1.8rem,7vw,2.8rem);line-height:1.15;margin:.2em 0}
+h2,h3{margin:.2em 0 .5em}
+p{margin:.4em 0}
+.mu{color:var(--mu)}
+canvas{display:block;width:100%;max-width:420px;aspect-ratio:1/1;margin:10px auto;border-radius:12px;background:#0a1128;border:1px solid var(--ln)}
+.btn{display:block;width:100%;min-height:56px;margin-top:12px;border:0;border-radius:14px;background:var(--cy);color:#04122e;font:800 1.05rem inherit;font-family:inherit;cursor:pointer;touch-action:manipulation}
+.btn:active{transform:scale(.98)}
+.opts{display:grid;gap:10px;margin-top:12px}
+.opt{min-height:60px;padding:12px 14px;text-align:left;border-radius:14px;border:2px solid var(--ln);background:#0e1938;color:var(--tx);font:600 1.05rem inherit;font-family:inherit;cursor:pointer;touch-action:manipulation}
+.opt:hover:not(:disabled){border-color:var(--cy)}
+.opt.ok{border-color:var(--ok);background:rgba(61,220,151,.18)}
+.opt.no{border-color:var(--bad);background:rgba(255,107,139,.18)}
+.fb{margin-top:12px;padding:12px;border-radius:12px;font-weight:600}
+.fb.ok{background:rgba(61,220,151,.15);border:1px solid var(--ok)}
+.fb.no{background:rgba(255,107,139,.15);border:1px solid var(--bad)}
+.eq{font-size:1.5rem;font-weight:800;text-align:center;color:var(--am);margin:6px 0}
+.sl{display:block;margin:14px 0 4px;font-weight:600}
+.sl b{color:var(--cy);font-size:1.2rem}
+input[type=range]{width:100%;height:44px;accent-color:var(--cy);touch-action:pan-y}
+ul{padding-left:20px}li{margin:6px 0}
+.big{font-size:3.2rem;font-weight:800;color:var(--am);text-align:center;line-height:1}
+.row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--ln)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="brand">Ֆունկցիաների լաբորատորիա</div><div class="score">Միավոր՝ <span id="sc">0</span></div></header>
+<div id="hud" hidden>
+<div class="chips" id="chips"></div>
+<div class="prog"><div id="bar"></div></div>
+<div class="cnt" id="cnt"></div>
+</div>
+<main id="app" class="card"></main>
+</div>
+<script>
+//GEN
+const R=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const sh=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=R(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+const n=v=>String(v).replace('-','−');
+const fx=(a,b)=>'y = '+(a==1?'x':a==-1?'−x':n(a)+'x')+(b>0?' + '+b:b<0?' − '+(-b):'');
+const pick=a=>a[R(0,a.length-1)];
+function mk(t,c,w,e,g){const o=[c];for(const x of w)if(!o.includes(x)&&o.length<4)o.push(x);return{t,c,o,e,g}}
+const dr=v=>v+' դրամ';
+function eqQ(a,b){return sh([[-a,b],[a,-b],[b,a],[-a,-b],[a+1,b],[a,b+1],[a-1,b],[a,b-1]].filter(p=>p[0]!=0).map(p=>fx(p[0],p[1])))}
+function coef(){return [pick([-2,-1,1,2]),pick([-3,-2,-1,1,2,3])]}
+const ex=(a,b)=>`a = ${n(a)} (թեքություն), b = ${n(b)} (y առանցքի հատման կետը)։ Ճիշտ հավասարումը՝ ${fx(a,b)}։`;
+function s2(k){const [a,b]=coef();const c=fx(a,b);
+ if(k<3)return Object.assign(mk('Ո՞ր հավասարումն է համապատասխանում տրված գրաֆիկին։',c,eqQ(a,b).slice(0,6),ex(a,b)),{g:{a,b}});
+ return mk(`Աղյուսակում՝ x = 0 դեպքում y = ${n(b)}, իսկ x = 1 դեպքում y = ${n(a+b)}։ Ո՞ր ֆունկցիան է տալիս այս արժեքները։`,c,eqQ(a,b),`b = ${n(b)}, որովհետև x = 0-ի դեպքում y = b։ a = ${n(a+b)} − (${n(b)}) = ${n(a)}։ Պատասխան՝ ${c}։`)}
+function s3(k){let f,d,v,s,t,p,c,W,r,T,x;
+ if(k==0){f=pick([500,600,700,800]);v=pick([100,120,150,200]);d=R(4,12);c=f+v*d;
+  return mk(`Տաքսու սակագինը՝ ${f} դրամ նստելու համար և ${v} դրամ յուրաքանչյուր կիլոմետրի համար։ Որքա՞ն կվճարես ${d} կմ ճանապարհի համար։`,dr(c),[v*d,f+v*(d+1),f+v*(d-1),f*d].map(dr),`Ֆունկցիան՝ y = ${v}x + ${f}։ y(${d}) = ${v}·${d} + ${f} = ${c} դրամ։`)}
+ if(k==1){f=pick([500,600,700,800]);v=pick([100,120,150,200]);d=R(5,14);T=f+v*d;
+  return mk(`Նույն տաքսու սակագինը՝ ${f} դրամ + ${v} դրամ/կմ։ Ուղևորը վճարել է ${T} դրամ։ Քանի՞ կիլոմետր է անցել։`,d+' կմ',[d+1,d-1,d+2,d-2].map(z=>z+' կմ'),`${v}x + ${f} = ${T}, ուստի x = (${T} − ${f}) : ${v} = ${d} կմ։`)}
+ if(k==2){s=R(2,9)*10;v=pick([40,50,60,70,80]);t=R(2,6);c=s+v*t;
+  return mk(`Ավտոբուսը Երևանից դուրս է եկել և արդեն ${s} կմ հեռու է։ Նա շարունակում է հեռանալ ${v} կմ/ժ արագությամբ։ Ի՞նչ հեռավորության վրա կլինի Երևանից ${t} ժամ հետո։`,c+' կմ',[v*t,s+v*(t+1),s+v*(t-1),s+v*(t+2),s*t].map(z=>z+' կմ'),`s(t) = ${v}t + ${s}։ s(${t}) = ${v}·${t} + ${s} = ${c} կմ։`)}
+ if(k==3){p=pick([200,250,300,350]);c=pick([50,100,150]);
+  return mk(`Մեկ տետրի գինը ${p} դրամ է, իսկ տոպրակը՝ ${c} դրամ (վճարվում է միայն մեկ անգամ)։ Ո՞ր ֆունկցիան է տալիս x տետրի ընդհանուր արժեքը՝ y-ը։`,`y = ${p}x + ${c}`,[`y = ${c}x + ${p}`,`y = ${p+c}x`,`y = ${p}x − ${c}`,`y = ${p}(x + ${c})`],`Փոփոխվող մասը՝ ${p}x, հաստատուն մասը՝ ${c}։ Ուրեմն y = ${p}x + ${c}։`)}
+ r=R(3,9);t=R(4,10);W=r*t+R(10,60);c=W-r*t;
+ return mk(`Ջրամբարում ${W} լիտր ջուր կա։ Արտահոսքի պատճառով ամեն րոպե ${r} լիտր է պակասում։ Որքա՞ն ջուր կմնա ${t} րոպե հետո։`,c+' լ',[W+r*t,r*t,W-r*(t+1),W-r*(t-1)].map(z=>z+' լ'),`V(t) = ${W} − ${r}t։ V(${t}) = ${W} − ${r*t} = ${c} լիտր։`)}
+function bz(){const v=pick([100,200,300]),m=pick([100,200,300]),x0=R(2,4);return{v,m,p:v+m,x0,F:m*x0}}
+function s4(k){const o=bz(),{v,m,p,x0,F}=o;
+ if(k==0){const x=x0+R(2,4),c=m*(x-x0);
+  return mk(`Հացատունը մեկ կարկանդակ վաճառում է ${p} դրամով, մեկի ինքնարժեքը ${v} դրամ է, իսկ օրական վարձավճարը՝ ${F} դրամ։ Ի՞նչ շահույթ կստացվի օրը ${x} կարկանդակ վաճառելիս։`,dr(c),[p*x,m*x,m*x+F,p*x-F,c+m,c-m,c+2*m].map(dr),`P(x) = (${p} − ${v})x − ${F} = ${m}x − ${F}։ P(${x}) = ${m*x} − ${F} = ${c} դրամ։`)}
+ if(k==1)return mk(`Հացատունը կարկանդակը վաճառում է ${p} դրամով, ինքնարժեքը ${v} դրամ է, օրական վարձավճարը՝ ${F} դրամ։ Ո՞ր ֆունկցիան է տալիս շահույթը (P)՝ x կարկանդակ վաճառելիս։`,`P = ${m}x − ${F}`,[`P = ${p+v}x − ${F}`,`P = ${m}x + ${F}`,`P = ${p}x − ${F}`,`P = ${v}x − ${F}`],`Շահույթ = եկամուտ − ծախս = ${p}x − (${v}x + ${F}) = ${m}x − ${F}։`);
+ if(k==2)return mk(`Հացատան օրական շահույթը P = ${m}x − ${F} է։ Նվազագույնը քանի՞ կարկանդակ պետք է վաճառել, որ վնաս չլինի (P = 0)։`,x0+' հատ',[x0+1,x0-1,x0+2,x0+3].map(z=>z+' հատ'),`${m}x − ${F} = 0, ուստի x = ${F} : ${m} = ${x0}։`);
+ const q=R(2,5),x1=x0+q,T=m*q;
+ return mk(`Նույն ֆունկցիայով (P = ${m}x − ${F}) քանի՞ կարկանդակ պետք է վաճառել ${T} դրամ շահույթ ստանալու համար։`,x1+' հատ',[x1+1,x1-1,q,x0,x1+2,x1+3].map(z=>z+' հատ'),`${m}x − ${F} = ${T}, ուստի x = ${T+F} : ${m} = ${x1}։`)}
+//ENDGEN
+const NM=['Կառուցիր ֆունկցիան','Ընտրիր ճիշտ ֆունկցիան','Կյանքի կիրառություններ','Շահույթ և բիզնես'];
+const IN=['Տես նպատակային գրաֆիկը (ոսկեգույն կետագիծ) և սահողակներով ընտրիր a և b գործակիցները՝ y = ax + b։ a-ն թեքությունն է, b-ն՝ y առանցքի հատման կետը։',
+'Գրաֆիկից, կետերից կամ աղյուսակից որոշիր ֆունկցիայի հավասարումը և ընտրիր ճիշտ տարբերակը։',
+'Իրական իրավիճակները նկարագրիր գծային ֆունկցիայով՝ y = kx + m, և լուծիր խնդիրները։',
+'Շահույթ = եկամուտ − ծախս։ Եթե x-ը վաճառված քանակն է, ապա P(x) = (գին − ինքնարժեք)·x − հաստատուն ծախս։'];
+const MAXS=[30,40,40,40],TOTAL=150;
+const $=s=>document.querySelector(s);
+let Q=[],i=0,score=0,st=[0,0,0,0],wrong=0,locked=false,ls=-1,cur=[],anim=null;
+
+function draw(cv,L,pts){const d=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;if(!w)return;cv.width=w*d;cv.height=h*d;
+ const c=cv.getContext('2d');c.setTransform(d,0,0,d,0,0);const sx=x=>(x+8)/16*w,sy=y=>h-(y+8)/16*h;
+ c.lineWidth=1;for(let k=-8;k<=8;k++){c.strokeStyle=k==0?'#8fa4e8':'#22336a';c.beginPath();c.moveTo(sx(k),0);c.lineTo(sx(k),h);c.moveTo(0,sy(k));c.lineTo(w,sy(k));c.stroke()}
+ c.fillStyle='#9fb0e0';c.font='11px sans-serif';for(let k=-6;k<=6;k+=2)if(k){c.fillText(n(k),sx(k)+2,sy(0)+12);c.fillText(n(k),sx(0)+4,sy(k)-2)}
+ c.save();c.beginPath();c.rect(0,0,w,h);c.clip();
+ L.forEach(l=>{c.strokeStyle=l.c;c.lineWidth=3;c.setLineDash(l.dash?[8,6]:[]);c.beginPath();c.moveTo(sx(-8),sy(l.a*-8+l.b));c.lineTo(sx(8),sy(l.a*8+l.b));c.stroke()});
+ c.setLineDash([]);(pts||[]).forEach(p=>{c.fillStyle='#ffb84d';c.beginPath();c.arc(sx(p[0]),sy(p[1]),5,0,7);c.fill()});c.restore()}
+
+function build(){Q=[];for(let k=0;k<3;k++){let a,b;do{a=R(-4,4);b=R(-6,6)}while(a==0&&b==0);Q.push({s:0,type:'b',a,b})}
+ for(let k=0;k<4;k++)Q.push(Object.assign({s:1},s2(k)));
+ for(const k of sh([0,2,3,4]))Q.push(Object.assign({s:2},s3(k)));
+ for(let k=0;k<4;k++)Q.push(Object.assign({s:3},s4(k)))}
+function view(h){$('#app').innerHTML=h;window.scrollTo(0,0)}
+function hud(){$('#sc').textContent=score;$('#hud').hidden=false;$('#bar').style.width=(i/Q.length*100)+'%';$('#cnt').textContent=`Առաջադրանք ${Math.min(i+1,Q.length)} / ${Q.length}`;
+ const s=Q[Math.min(i,Q.length-1)].s;$('#chips').innerHTML=NM.map((x,k)=>`<div class="chip ${k==s?'on':k<s?'done':''}">${k<s?'✓ ':''}Փուլ ${k+1}</div>`).join('')}
+
+function home(){clearInterval(anim);$('#hud').hidden=true;$('#sc').textContent=0;
+ view(`<h1>Ֆունկցիաների լաբորատորիա</h1><p class="mu">Ֆունկցիաների կառուցումը և կիրառությունները</p><canvas id="cv"></canvas><div class="eq" id="heq"></div>
+ <h3>Ինչպես խաղալ</h3><ul><li>4 փուլ, 15 առաջադրանք։ Յուրաքանչյուրը՝ մինչև 10 միավոր։</li><li>Առաջին փուլում սահողակներով կառուցիր y = ax + b ֆունկցիան, մյուսներում՝ չորս տարբերակից ընտրիր մեկ ճիշտ պատասխան։</li><li>Պատասխանից հետո անմիջապես կտեսնես՝ ճիշտ է, թե ոչ, և կստանաս բացատրություն։</li></ul>
+ <button class="btn" data-a="start">Սկսել փորձը</button>`);
+ const cv=$('#cv'),reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;let t=0;
+ const f=()=>{const a=Math.round(Math.sin(t)*20)/10,b=Math.round(Math.cos(t*.7)*30)/10;draw(cv,[{a,b,c:'#4de1ff'}]);$('#heq').textContent='y = '+a.toFixed(1)+'x + '+b.toFixed(1);t+=.05};
+ f();if(!reduce)anim=setInterval(f,50)}
+function start(){clearInterval(anim);build();i=0;score=0;st=[0,0,0,0];ls=-1;showQ()}
+function showQ(){if(i>=Q.length)return end();const q=Q[i];hud();locked=false;wrong=0;
+ if(q.s!==ls){ls=q.s;return view(`<h2>Փուլ ${q.s+1}. ${NM[q.s]}</h2><p>${IN[q.s]}</p><button class="btn" data-a="go">Սկսել</button>`)}
+ if(q.type=='b'){const lv=Q.slice(0,i+1).length;
+  view(`<h3>Մակարդակ ${lv} / 3</h3><p class="mu">Համընկեցրու քո գրաֆիկը (կապույտ) նպատակայինի հետ (ոսկեգույն կետագիծ)։</p><canvas id="cv"></canvas><div class="eq" id="eq"></div>
+  <label class="sl">a = <b id="av">0</b></label><input type="range" id="a" min="-5" max="5" step="1" value="0">
+  <label class="sl">b = <b id="bv">0</b></label><input type="range" id="b" min="-8" max="8" step="1" value="0">
+  <div id="fb"></div><div id="act"><button class="btn" data-a="check">Ստուգել</button></div>`);
+  const upd=()=>{const A=+$('#a').value,B=+$('#b').value;$('#av').textContent=n(A);$('#bv').textContent=n(B);$('#eq').textContent=fx(A,B);
+   draw($('#cv'),[{a:q.a,b:q.b,c:'#ffb84d',dash:1},{a:A,b:B,c:'#4de1ff'}],[[0,q.b],[1,q.a+q.b]])};
+  $('#a').oninput=upd;$('#b').oninput=upd;upd();window.onresize=upd;return}
+ cur=sh(q.o);
+ view(`<h3>${q.t}</h3>${q.g?'<canvas id="cv"></canvas>':''}<div class="opts">${cur.map((o,k)=>`<button class="opt" data-a="opt" data-i="${k}">${o}</button>`).join('')}</div><div id="fb"></div><div id="act"></div>`);
+ if(q.g){const f=()=>draw($('#cv'),[{a:q.g.a,b:q.g.b,c:'#4de1ff'}],[[0,q.g.b],[1,q.g.a+q.g.b]]);f();window.onresize=f}}
+const nxt=()=>`<button class="btn" data-a="next">${i==Q.length-1?'Տեսնել արդյունքները':'Հաջորդը'}</button>`;
+function opt(k){if(locked)return;locked=true;const q=Q[i],ok=cur[k]===q.c;
+ document.querySelectorAll('.opt').forEach((b,j)=>{b.disabled=true;if(cur[j]===q.c)b.classList.add('ok');else if(j==k)b.classList.add('no')});
+ if(ok){score+=10;st[q.s]+=10}hud();
+ $('#fb').innerHTML=`<div class="fb ${ok?'ok':'no'}">${ok?'Ճիշտ է։ +10 միավոր։':'Սխալ է։ Ճիշտ պատասխանը՝ '+q.c+'։'} ${q.e}</div>`;$('#act').innerHTML=nxt()}
+function check(){const q=Q[i];if(locked)return;const A=+$('#a').value,B=+$('#b').value;
+ if(A==q.a&&B==q.b){locked=true;const p=Math.max(10-4*wrong,2);score+=p;st[0]+=p;hud();$('#a').disabled=$('#b').disabled=true;
+  $('#fb').innerHTML=`<div class="fb ok">Ճիշտ է։ Կառուցեցիր ${fx(q.a,q.b)} ֆունկցիան։ +${p} միավոր։</div>`;$('#act').innerHTML=nxt()}
+ else{wrong++;const h=A!=q.a&&B!=q.b?'Թե՛ a-ն, թե՛ b-ն սխալ են։':A!=q.a?'Թեքությունը (a) սխալ է. նայիր, թե գծի թեքությունը ինչպես է տարբերվում։':'Գրաֆիկի հատումը y առանցքի հետ (b) սխալ է։';
+  $('#fb').innerHTML=`<div class="fb no">Դեռ ոչ։ ${h} Փորձիր նորից (ամեն սխալ նվազեցնում է միավորը)։</div>`}}
+function end(){$('#hud').hidden=true;const pc=Math.round(score/TOTAL*100);
+ const ttl=pc>=90?'Ֆունկցիաների վարպետ':pc>=70?'Լաբորատորիայի հետազոտող':pc>=50?'Սկսնակ փորձարար':'Շարունակիր փորձերը';
+ view(`<h2>Արդյունքներ</h2><div class="big">${score} / ${TOTAL}</div><p style="text-align:center" class="mu">${pc}%</p><h3 style="text-align:center;color:var(--cy)">${ttl}</h3>
+ ${NM.map((x,k)=>`<div class="row"><span>Փուլ ${k+1}. ${x}</span><b>${st[k]} / ${MAXS[k]}</b></div>`).join('')}
+ <button class="btn" data-a="start">Խաղալ կրկին</button>`);$('#sc').textContent=score;window.onresize=null}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;
+ if(a=='start')start();else if(a=='go')showQ();else if(a=='opt')opt(+b.dataset.i);else if(a=='check')check();else if(a=='next'){i++;showQ()}});
+home();
+</script>
+</body>
+</html>
